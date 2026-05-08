@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/search', searchTrains);
 
 // Book a Train
-router.post('/book', protect, bookTrainSeats);
+router.post('/', protect, bookTrainSeats);
 
 // User booking History
 router.get('/my-bookings', protect, getMyBookings);
