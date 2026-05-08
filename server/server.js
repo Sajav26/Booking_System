@@ -7,6 +7,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import trainRoutes from './routes/trainRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
 
 // load env varibales
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/trains', trainRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Test route
 app.get('/', (req, res) => {
