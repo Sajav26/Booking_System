@@ -18,10 +18,12 @@ const bookingSchema = new mongoose.Schema({
         required: true
     },
 
-    seatsBooked: {
-        type: Number,
-        required: true
-    },
+    seatsBooked: [
+        {
+            type: String,
+            required: true
+        },
+    ],
 
     totalPrice: {
         type: Number,

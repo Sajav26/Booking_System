@@ -32,7 +32,7 @@ export const bookTrainSeats = async (req, res) => {
         const {
             trainId,
             className,
-            seatsBooked,
+            selectedSeats,
         } = req.body;
 
         // Find train
@@ -55,33 +55,41 @@ export const bookTrainSeats = async (req, res) => {
             });
         }
 
-        // Check seat availability
-        if (trainClass.availableSeats < seatsBooked) {
+        // Check if seats already booked
+        const alreadyBooked = selectedSeats.some(
+            (seat) =>
+                trainClass.bookedSeats.includes(seat)
+        );
+
+        if (alreadyBooked) {
             return res.status(400).json({
-                message: "Not enough seats available",
+                message: "Some seats already booked",
             });
         }
 
+        // Add booked seats
+        trainClass.bookedSeats.push(...selectedSeats);
+
         // Reduce available seats
-        trainClass.availableSeats -= seatsBooked;
+        trainClass.availableSeats -= selectedSeats.length;
 
         await train.save();
 
         // Calculate price
         const totalPrice =
-            trainClass.price * seatsBooked;
+            trainClass.price * selectedSeats.length;
 
         // Create booking
         const booking = await Booking.create({
             user: req.user._id,
             train: train._id,
             className,
-            seatsBooked,
+            selectedSeats,
             totalPrice,
         });
 
         res.status(201).json({
-            message: "Booking successful",
+            message: "Seats booked successfully",
             booking,
         });
 
@@ -106,6 +114,41 @@ export const getMyBookings = async (req, res) => {
 
     } catch (error) {
 
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+// Seat Availability Check
+export const getSeatAvailability = async (req, res) => {
+    try{
+        const { trainId, className } = req.query;
+
+        const train = await Train.findById(trainId);
+
+        if (!train) {
+            return res.status(404).json({
+                message: "Train not found",
+            });
+        }
+
+        const trainClass = train.classes.find(
+            (cls) => cls.className === className
+        );
+
+        if (!trainClass) {
+            return res.status(404).json({
+                message: "Class not found",
+            });
+        }
+
+        res.json({
+            availableSeats: trainClass.availableSeats,
+            totalSeats: trainClass.totalSeats,
+        });
+        
+    }catch(error){
         res.status(500).json({
             message: error.message,
         });

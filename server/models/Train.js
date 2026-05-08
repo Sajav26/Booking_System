@@ -20,6 +20,12 @@ const classSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+
+    bookedSeats: [
+        {
+            type: String,
+        },
+    ],
 });
 
 const trainSchema = new mongoose.Schema({
