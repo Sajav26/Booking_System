@@ -1,9 +1,11 @@
-import Booking from '../models/Booking.js';
-import Train from '../models/Train.js';
+import Booking from "../models/Booking.js";
+import Train from "../models/Train.js";
 
-//  Serach Trains
+// SEARCH TRAINS
 export const searchTrains = async (req, res) => {
-    try{
+
+    try {
+
         const { from, to, journeyDate } = req.query;
 
         const trains = await Train.find({
@@ -12,45 +14,64 @@ export const searchTrains = async (req, res) => {
             journeyDate,
         });
 
-        res.status(200).json(trains);
+        res.json(trains);
 
-    }catch(error){
-        res.status(500).json({ message: 'Server Error' });
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message,
+        });
     }
 };
 
-// Book a Train
+// BOOK TRAIN SEATS
 export const bookTrainSeats = async (req, res) => {
-    try{
-        const { trainId, className, seatsBooked } = req.body;
 
-        // Find the train
+    try {
+
+        const {
+            trainId,
+            className,
+            seatsBooked,
+        } = req.body;
+
+        // Find train
         const train = await Train.findById(trainId);
 
-        if(!train){
-            return res.status(404).json({ message: 'Train not found' });
+        if (!train) {
+            return res.status(404).json({
+                message: "Train not found",
+            });
         }
 
-        // Find the class details
-        const trainClass = train.classes.find((cls) => cls.className === className);
+        // Find class
+        const trainClass = train.classes.find(
+            (cls) => cls.className === className
+        );
 
-        if(!trainClass){
-            return res.status(404).json({ message: 'Class not found' });
+        if (!trainClass) {
+            return res.status(404).json({
+                message: "Class not found",
+            });
         }
 
-        // Check if enough seats are available
-        if(trainClass.availableSeats < seatsBooked){
-            return res.status(400).json({ message: 'Not enough seats available' });
+        // Check seat availability
+        if (trainClass.availableSeats < seatsBooked) {
+            return res.status(400).json({
+                message: "Not enough seats available",
+            });
         }
 
-        // Reduce the available seats
+        // Reduce available seats
         trainClass.availableSeats -= seatsBooked;
+
         await train.save();
 
         // Calculate price
-        const totalPrice = trainClass.price * seatsBooked;
+        const totalPrice =
+            trainClass.price * seatsBooked;
 
-        // Create a booking
+        // Create booking
         const booking = await Booking.create({
             user: req.user._id,
             train: train._id,
@@ -59,23 +80,34 @@ export const bookTrainSeats = async (req, res) => {
             totalPrice,
         });
 
-        res.status(201).json({ message: 'Booking successful', booking });
+        res.status(201).json({
+            message: "Booking successful",
+            booking,
+        });
 
-    }catch(error){
-        res.status(500).json({ message: 'Server Error' });
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message,
+        });
     }
 };
 
-//  Get User Bookings
+// USER BOOKINGS
 export const getMyBookings = async (req, res) => {
-    try{
+
+    try {
+
         const bookings = await Booking.find({
-            user: req.user._id
-        }).populate('train');
+            user: req.user._id,
+        }).populate("train");
 
-        res.status(200).json(bookings);
+        res.json(bookings);
 
-    }catch(error){
-        res.status(500).json({ message: 'Server Error' });
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message,
+        });
     }
 };
